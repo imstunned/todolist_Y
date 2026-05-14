@@ -5,7 +5,7 @@ import ToDoForm from './AddTask.jsx';
 import ToDo from './Task.jsx';
 
 const TASKS_STORAGE_KEY = 'tasks-list-project-web';
-const weatherApiKey = import.meta.env.VITE_OPENWEATHER_API_KEY || '';
+const weatherApiKey = '88b2b0378580e2abd309d17e585dfe4e';
 
 function App() {
   const [rates, setRates] = useState({});
@@ -13,25 +13,23 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [weatherMessage, setWeatherMessage] = useState('');
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState(() => {
+  const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
 
-  useEffect(() => {
-    const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+  if (!storedTasks) {
+    return [];
+  }
 
-    if (!storedTasks) {
-      return;
-    }
+  try {
+    const parsedTasks = JSON.parse(storedTasks);
 
-    try {
-      const parsedTasks = JSON.parse(storedTasks);
+    return Array.isArray(parsedTasks) ? parsedTasks : [];
+  } catch (storageError) {
+    console.error('Ошибка при чтении задач из localStorage:', storageError.message);
+    return [];
+  }
+});
 
-      if (Array.isArray(parsedTasks)) {
-        setTodos(parsedTasks);
-      }
-    } catch (storageError) {
-      console.error('Ошибка при чтении задач из localStorage:', storageError.message);
-    }
-  }, []);
 
   useEffect(() => {
     try {
