@@ -5,7 +5,7 @@ import ToDoForm from './AddTask.jsx';
 import ToDo from './Task.jsx';
 
 const TASKS_STORAGE_KEY = 'tasks-list-project-web';
-const weatherApiKey = '88b2b0378580e2abd309d17e585dfe4e';
+const weatherApiKey = '0141b3a664984fbe9cb181150261505';
 
 function App() {
   const [rates, setRates] = useState({});
@@ -14,22 +14,21 @@ function App() {
   const [error, setError] = useState('');
   const [weatherMessage, setWeatherMessage] = useState('');
   const [todos, setTodos] = useState(() => {
-  const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+    const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
 
-  if (!storedTasks) {
-    return [];
-  }
+    if (!storedTasks) {
+      return [];
+    }
 
-  try {
-    const parsedTasks = JSON.parse(storedTasks);
+    try {
+      const parsedTasks = JSON.parse(storedTasks);
 
-    return Array.isArray(parsedTasks) ? parsedTasks : [];
-  } catch (storageError) {
-    console.error('Ошибка при чтении задач из localStorage:', storageError.message);
-    return [];
-  }
-});
-
+      return Array.isArray(parsedTasks) ? parsedTasks : [];
+    } catch (storageError) {
+      console.error('Ошибка при чтении задач из localStorage:', storageError.message);
+      return [];
+    }
+  });
 
   useEffect(() => {
     try {
@@ -49,8 +48,8 @@ function App() {
         throw new Error('Нет данных о валюте.');
       }
 
-      const USDrate = currencyResponse.data.Valute.USD.Value.toFixed(4).replace('.', ',');
-      const EURrate = currencyResponse.data.Valute.EUR.Value.toFixed(4).replace('.', ',');
+      const USDrate = currencyResponse.data.Valute.USD.Value.toFixed(2).replace('.', ',');
+      const EURrate = currencyResponse.data.Valute.EUR.Value.toFixed(2).replace('.', ',');
 
       if (isMounted) {
         setRates({ USDrate, EURrate });
@@ -59,21 +58,19 @@ function App() {
 
     async function fetchWeatherData(latitude, longitude) {
       if (!weatherApiKey) {
-        setWeatherMessage('Добавьте ключ VITE_OPENWEATHER_API_KEY, чтобы показать погоду.');
+        setWeatherMessage('Добавьте ключ WeatherAPI.com, чтобы показать погоду.');
         return;
       }
 
-      const weatherResponse = await axios.get('https://api.openweathermap.org/data/2.5/weather', {
+      const weatherResponse = await axios.get('https://api.weatherapi.com/v1/current.json', {
         params: {
-          lat: latitude,
-          lon: longitude,
-          appid: weatherApiKey,
-          units: 'metric',
+          key: weatherApiKey,
+          q: `${latitude},${longitude}`,
           lang: 'ru',
         },
       });
 
-      if (!weatherResponse.data?.main) {
+      if (!weatherResponse.data?.current) {
         throw new Error('Нет данных о погоде.');
       }
 
@@ -93,8 +90,12 @@ function App() {
 
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            fetchWeatherData(position.coords.latitude, position.coords.longitude).catch((weatherError) => {
+            fetchWeatherData(
+              position.coords.latitude,
+              position.coords.longitude,
+            ).catch((weatherError) => {
               console.error(weatherError);
+
               if (isMounted) {
                 setWeatherMessage('Не удалось загрузить погоду.');
               }
@@ -108,6 +109,7 @@ function App() {
         );
       } catch (requestError) {
         console.error(requestError);
+
         if (isMounted) {
           setError('Ошибка загрузки данных.');
         }
@@ -158,8 +160,11 @@ function App() {
       <section className="info" aria-label="Информация о валюте и погоде">
         <div className="money">
           <h2>Курсы валют</h2>
+
           {loading && <p>Загрузка...</p>}
+
           {!loading && error && <p className="error-text">{error}</p>}
+
           {!loading && !error && (
             <>
               <div id="USD">Доллар США $ — {rates.USDrate} руб.</div>
@@ -170,15 +175,17 @@ function App() {
 
         <div className="weather-info">
           <h2>Погода сегодня</h2>
+
           {weatherData ? (
             <div className="weather-row">
-              <span>🌡️ {weatherData.main.temp.toFixed(1)}°C</span>
-              <span>༄ {weatherData.wind.speed} м/с</span>
-              <span>☁️ {weatherData.clouds.all}%</span>
+              <span>🌡️ {weatherData.current.temp_c.toFixed(1)}°C</span>
+              <span>༄ {weatherData.current.wind_kph} км/ч</span>
+              <span>☁️ {weatherData.current.cloud}%</span>
+
               <img
                 className="weather-icon"
-                src={`https://openweathermap.org/img/w/${weatherData.weather[0].icon}.png`}
-                alt={weatherData.weather[0].description || 'Иконка погоды'}
+                src={`https:${weatherData.current.condition.icon}`}
+                alt={weatherData.current.condition.text || 'Иконка погоды'}
               />
             </div>
           ) : (
@@ -191,7 +198,9 @@ function App() {
         <header>
           <h1 className="list-header">Список задач: {todos.length}</h1>
         </header>
+
         <ToDoForm addTask={addTask} />
+
         <div className="todo-list">
           {todos.map((todo) => (
             <ToDo
