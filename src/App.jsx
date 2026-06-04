@@ -7,12 +7,21 @@ import ToDo from './Task.jsx';
 const TASKS_STORAGE_KEY = 'tasks-list-project-web';
 const weatherApiKey = '0141b3a664984fbe9cb181150261505';
 
+// Здесь можно поменять лигу Path of Exile
+// Например: 'Standard', 'Mercenaries', 'Hardcore'
+const POE_LEAGUE = 'Mirage';
+
 function App() {
   const [rates, setRates] = useState({});
   const [weatherData, setWeatherData] = useState(null);
+  const [poeRate, setPoeRate] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
   const [weatherMessage, setWeatherMessage] = useState('');
+  const [poeError, setPoeError] = useState('');
+
   const [todos, setTodos] = useState(() => {
     const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
 
@@ -56,6 +65,43 @@ function App() {
       }
     }
 
+    async function fetchPoeNinjaData() {
+      const poeResponse = await axios.get('https://poe.ninja/api/data/currencyoverview', {
+        params: {
+          league: POE_LEAGUE,
+          type: 'Currency',
+        },
+      });
+
+      const lines = poeResponse.data?.lines;
+
+      if (!Array.isArray(lines)) {
+        throw new Error('Нет данных poe.ninja.');
+      }
+
+      const divineOrb = lines.find(
+        (currency) => currency.currencyTypeName === 'Divine Orb',
+      );
+
+      const exaltedOrb = lines.find(
+        (currency) => currency.currencyTypeName === 'Exalted Orb',
+      );
+
+      if (!divineOrb?.chaosEquivalent || !exaltedOrb?.chaosEquivalent) {
+        throw new Error('Не удалось найти Divine Orb или Exalted Orb.');
+      }
+
+      const divineToExalted = divineOrb.chaosEquivalent / exaltedOrb.chaosEquivalent;
+
+      if (isMounted) {
+        setPoeRate({
+          divineToExalted: divineToExalted.toFixed(2),
+          divineChaos: divineOrb.chaosEquivalent.toFixed(2),
+          exaltedChaos: exaltedOrb.chaosEquivalent.toFixed(2),
+        });
+      }
+    }
+
     async function fetchWeatherData(latitude, longitude) {
       if (!weatherApiKey) {
         setWeatherMessage('Добавьте ключ WeatherAPI.com, чтобы показать погоду.');
@@ -82,6 +128,14 @@ function App() {
     async function fetchAllData() {
       try {
         await fetchCurrencyData();
+
+        fetchPoeNinjaData().catch((poeRequestError) => {
+          console.error(poeRequestError);
+
+          if (isMounted) {
+            setPoeError('Не удалось загрузить курс poe.ninja.');
+          }
+        });
 
         if (!navigator.geolocation) {
           setWeatherMessage('Геолокация не поддерживается вашим браузером.');
@@ -157,7 +211,7 @@ function App() {
 
   return (
     <main className="App">
-      <section className="info" aria-label="Информация о валюте и погоде">
+      <section className="info" aria-label="Информация о валюте, погоде и Path of Exile">
         <div className="money">
           <h2>Курсы валют</h2>
 
@@ -170,6 +224,23 @@ function App() {
               <div id="USD">Доллар США $ — {rates.USDrate} руб.</div>
               <div id="EUR">Евро € — {rates.EURrate} руб.</div>
             </>
+          )}
+        </div>
+
+        <div className="poe-info">
+          <h2>Path of Exile</h2>
+
+          {poeError && <p className="error-text">{poeError}</p>}
+
+          {!poeError && poeRate ? (
+            <>
+              <div>💠 1 Divine Orb ≈ {poeRate.divineToExalted} Exalted Orb</div>
+              <div>Divine Orb — {poeRate.divineChaos} chaos</div>
+              <div>Exalted Orb — {poeRate.exaltedChaos} chaos</div>
+              <small>Лига: {POE_LEAGUE}</small>
+            </>
+          ) : (
+            !poeError && <p>Загрузка курса PoE...</p>
           )}
         </div>
 

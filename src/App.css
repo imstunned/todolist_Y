@@ -52,6 +52,23 @@
   gap: 10px;
 }
 
+.poe-info {
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.poe-info div {
+  margin-bottom: 6px;
+}
+
+.poe-info small {
+  opacity: 0.7;
+}
+
+.error-text {
+  color: #ff4d4d;
+}
+
 .weather-icon {
   width: 46px;
   height: 46px;
