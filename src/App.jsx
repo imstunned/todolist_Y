@@ -9,7 +9,7 @@ const weatherApiKey = '0141b3a664984fbe9cb181150261505';
 
 // Здесь можно поменять лигу Path of Exile
 // Например: 'Standard', 'Mercenaries', 'Hardcore'
-const POE_LEAGUE = 'Mirage';
+const POE_LEAGUE = 'Standard';
 
 function App() {
   const [rates, setRates] = useState({});
@@ -66,10 +66,9 @@ function App() {
     }
 
     async function fetchPoeNinjaData() {
-      const poeResponse = await axios.get('https://poe.ninja/api/data/currencyoverview', {
+      const poeResponse = await axios.get('http://localhost:3001/api/poe-currency', {
         params: {
           league: POE_LEAGUE,
-          type: 'Currency',
         },
       });
 
@@ -79,28 +78,26 @@ function App() {
         throw new Error('Нет данных poe.ninja.');
       }
 
-      const divineOrb = lines.find(
-        (currency) => currency.currencyTypeName === 'Divine Orb',
-      );
+      const divineOrb = lines.find((currency) => currency.id === 'divine');
+      const exaltedOrb = lines.find((currency) => currency.id === 'exalted');
 
-      const exaltedOrb = lines.find(
-        (currency) => currency.currencyTypeName === 'Exalted Orb',
-      );
-
-      if (!divineOrb?.chaosEquivalent || !exaltedOrb?.chaosEquivalent) {
+      if (!divineOrb?.primaryValue || !exaltedOrb?.primaryValue) {
         throw new Error('Не удалось найти Divine Orb или Exalted Orb.');
       }
 
-      const divineToExalted = divineOrb.chaosEquivalent / exaltedOrb.chaosEquivalent;
+      const divineChaos = divineOrb.primaryValue;
+      const exaltedChaos = exaltedOrb.primaryValue;
+
+      const divineToExalted = divineChaos / exaltedChaos;
 
       if (isMounted) {
         setPoeRate({
           divineToExalted: divineToExalted.toFixed(2),
-          divineChaos: divineOrb.chaosEquivalent.toFixed(2),
-          exaltedChaos: exaltedOrb.chaosEquivalent.toFixed(2),
+          divineChaos: divineChaos.toFixed(2),
+          exaltedChaos: exaltedChaos.toFixed(2),
         });
-      }
     }
+  }
 
     async function fetchWeatherData(latitude, longitude) {
       if (!weatherApiKey) {

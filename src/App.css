@@ -15,14 +15,15 @@
 
 .info {
   display: grid;
-  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
   gap: 16px;
-  max-width: 920px;
+  max-width: 1120px;
   margin: 0 auto 28px;
 }
 
 .money,
 .weather-info,
+.poe-info,
 .todo-panel {
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.28);
@@ -33,28 +34,17 @@
 }
 
 .money,
-.weather-info {
+.weather-info,
+.poe-info {
   min-height: 128px;
   padding: 18px;
 }
 
 .money h2,
-.weather-info h2 {
+.weather-info h2,
+.poe-info h2 {
   margin: 0 0 12px;
   font-size: 18px;
-}
-
-.weather-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.poe-info {
-  padding: 16px;
-  border-radius: 12px;
 }
 
 .poe-info div {
@@ -65,8 +55,12 @@
   opacity: 0.7;
 }
 
-.error-text {
-  color: #ff4d4d;
+.weather-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .weather-icon {
@@ -155,6 +149,13 @@ button {
 .strike {
   text-decoration: line-through;
   opacity: 0.72;
+}
+
+@media (max-width: 900px) {
+  .info {
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    max-width: 920px;
+  }
 }
 
 @media (max-width: 720px) {

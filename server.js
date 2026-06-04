@@ -1,0 +1,41 @@
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+const PORT = 3001;
+
+app.use(cors());
+
+app.get('/api/poe-currency', async (req, res) => {
+  try {
+    const league = req.query.league || 'Standard';
+
+    const url = new URL('https://poe.ninja/poe1/api/economy/exchange/current/overview');
+
+    url.searchParams.set('league', league);
+    url.searchParams.set('type', 'Currency');
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        message: `poe.ninja вернул ошибку ${response.status}`,
+        url: url.toString(),
+      });
+    }
+
+    const data = await response.json();
+
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: 'Не удалось загрузить данные poe.ninja',
+    });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`PoE proxy server started: http://localhost:${PORT}`);
+});
