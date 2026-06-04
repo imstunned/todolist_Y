@@ -66,7 +66,7 @@ function App() {
     }
 
     async function fetchPoeNinjaData() {
-      const poeResponse = await axios.get('http://localhost:3001/api/poe-currency', {
+      const poeResponse = await axios.get('https://todolist-y.onrender.com/api/poe-currency', {
         params: {
           league: POE_LEAGUE,
         },
