@@ -1,10 +1,19 @@
+/* eslint-env node */
+
+console.log('SERVER FILE LOADED:', import.meta.url);
+
 import express from 'express';
 import cors from 'cors';
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
+
+app.get('/', (req, res) => {
+  console.log('GET / called');
+  res.send('PoE proxy server is running');
+});
 
 app.get('/api/poe-currency', async (req, res) => {
   try {
@@ -36,6 +45,16 @@ app.get('/api/poe-currency', async (req, res) => {
   }
 });
 
+app.use((req, res) => {
+  console.log('UNKNOWN ROUTE:', req.method, req.url);
+
+  res.status(404).json({
+    message: 'Route not found',
+    method: req.method,
+    url: req.url,
+  });
+});
+
 app.listen(PORT, () => {
-  console.log(`PoE proxy server started: http://localhost:${PORT}`);
+  console.log(`PoE proxy server started on port ${PORT}`);
 });
